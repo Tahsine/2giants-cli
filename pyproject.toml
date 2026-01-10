@@ -1,0 +1,66 @@
+[project]
+name = "2giants-cli"
+version = "1.0.0"
+description = "Intelligent CLI powered by multi-agent AI with human-in-the-loop approval"
+authors = [{name = "KalineZephyr"}]
+readme = "README.md"
+requires-python = ">=3.11"
+keywords = ["cli", "ai", "agents", "gemini", "langgraph", "safety"]
+license = {text = "MIT"}
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: User Interfaces",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "typer>=0.21.1",
+    "rich>=14.2.0",
+    "prompt_toolkit>=3.0.52",
+    "langgraph>=1.0.5",
+    "langchain>=1.2.3",
+    "langchain-google-genai>=4.1.3",
+    "langchain-community>=0.4.1",
+    "langchain-chroma>=1.1.0",
+    "chromadb>=0.5.0",
+    "tavily-python>=0.7.17",
+    "gitpython>=3.1.40",
+    "requests>=2.31.0",
+    "beautifulsoup4>=4.14.3",
+    "psutil>=7.2.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+    "black>=25.12.0",
+    "ruff>=0.14.11",
+    "mypy>=1.19.1",
+]
+
+[project.scripts]
+2g = "twogiants.cli:app"
+# Tu peux ajouter d'autres alias plus tard:
+# giants = "twogiants.cli:app"
+# twogiants = "twogiants.cli:app"
+
+[build-system]
+requires = ["setuptools>=68.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
