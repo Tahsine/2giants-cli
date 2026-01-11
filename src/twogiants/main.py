@@ -33,7 +33,11 @@ class TwoGiants:
                 "Please create a .env file with your API key."
             )
         
-        # Initialize Gemini (using Flash for quick responses)
+        # Initialize Router Agent
+        from twogiants.agents.router import RouterAgent
+        self.router = RouterAgent(api_key=self.api_key, debug=debug)
+        
+        # Initialize base LLM (for simple responses)
         self.llm = ChatGoogleGenerativeAI(
             model="gemini-3-flash-preview",
             temperature=0.7,
@@ -43,12 +47,10 @@ class TwoGiants:
         if self.debug:
             console.print("[dim]🔧 Debug mode enabled[/dim]")
             console.print(f"[dim]🔑 API Key: {self.api_key[:10]}...[/dim]")
+            console.print("[dim]🧭 Router Agent initialized[/dim]")
     
     def execute(self, prompt: str, session: Optional[str] = None) -> str:
         """Execute a user command.
-        
-        This is the main entry point. For now, it just calls Gemini directly.
-        Later, this will route to specialized agents.
         
         Args:
             prompt: User's natural language command
@@ -60,21 +62,32 @@ class TwoGiants:
         
         if self.debug:
             console.print(f"[dim]📥 Received: {prompt}[/dim]")
-            console.print(f"[dim]🔒 Safe mode: {self.safe_mode}[/dim]")
         
         try:
-            # For now, simple Gemini call
-            # TODO: Later, route to specialized agents (router, executor, research)
+            # Route the command
+            route = self.router.route(prompt)
             
-            response = self.llm.invoke(prompt)
+            # Show routing info
+            route_desc = self.router.get_route_description(route)
+            console.print(f"[dim]{route_desc}[/dim]")
+            console.print()
             
-            if self.debug:
-                console.print(f"[dim]📤 Response length: {len(response.text)} chars[/dim]")
+            # Handle based on route
+            if route == "conversation":
+                return self._handle_conversation(prompt)
             
-            return response.text
+            elif route == "executor":
+                return self._handle_executor(prompt)
+            
+            elif route == "research":
+                return self._handle_research(prompt)
+            
+            else:
+                # Fallback (should not happen)
+                return self._handle_conversation(prompt)
         
         except Exception as e:
-            console.print(f"[red]❌ Error calling Gemini API:[/red] {e}")
+            console.print(f"[red]❌ Error:[/red] {e}")
             
             if self.debug:
                 import traceback
@@ -82,29 +95,66 @@ class TwoGiants:
             
             return f"Sorry, I encountered an error: {e}"
     
-    # Placeholder methods for future implementation
-    
-    def route_command(self, prompt: str) -> str:
-        """Route command to appropriate agent.
+    def _handle_conversation(self, prompt: str) -> str:
+        """Handle conversation requests.
         
-        TODO: Implement router agent logic
-        Returns: "conversation" | "executor" | "research"
+        TODO: Implement dedicated Conversation Agent
+        For now, uses basic Gemini.
         """
-        # Will be implemented with router agent
-        pass
-    
-    def execute_with_approval(self, prompt: str) -> str:
-        """Execute command with human-in-the-loop approval.
         
-        TODO: Implement executor workflow with approval system
-        """
-        # Will be implemented with executor agent + approval
-        pass
-    
-    def research(self, query: str) -> str:
-        """Research using web search and RAG.
+        system_prompt = """You are 2Giants, a friendly and helpful AI assistant.
+You answer questions, explain concepts, and have casual conversations.
+Be concise but thorough. Be friendly but professional.
+If the user wants to execute something, suggest they rephrase as a command."""
         
-        TODO: Implement research agent
+        messages = [
+            ("system", system_prompt),
+            ("user", prompt)
+        ]
+        
+        response = self.llm.invoke(messages)
+        return response.text
+    
+    def _handle_executor(self, prompt: str) -> str:
+        """Handle execution requests.
+        
+        TODO: Implement Executor Agent with approval system
+        For now, just acknowledges the request.
         """
-        # Will be implemented with research agent + RAG
-        pass
+        
+        return f"""🚧 Executor Agent (Coming Soon)
+
+I understand you want to execute: "{prompt}"
+
+The Executor Agent will:
+1. Plan the execution steps
+2. Assess risks for each step
+3. Show you the plan
+4. Wait for your approval
+5. Execute approved commands
+
+This feature is being implemented. For now, you can ask me questions about what this command would do!"""
+    
+    def _handle_research(self, prompt: str) -> str:
+        """Handle research requests.
+        
+        TODO: Implement Research Agent with RAG + web search
+        For now, uses Gemini knowledge.
+        """
+        
+        system_prompt = """You are 2Giants Research Agent.
+Answer the query using your knowledge. Be factual and cite when possible.
+Note: Web search and documentation indexing will be added soon for current information."""
+        
+        messages = [
+            ("system", system_prompt),
+            ("user", prompt)
+        ]
+        
+        response = self.llm.invoke(messages)
+        
+        return f"""🔍 Research Mode (Basic - Web search coming soon)
+
+{response.text}
+
+💡 Note: Full research capabilities with web search and documentation indexing are being implemented."""
