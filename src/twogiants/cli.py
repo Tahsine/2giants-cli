@@ -172,18 +172,33 @@ def execute_command(
 ):
     """Execute a single command (called by both modes)."""
     
-    # Pour l'instant, juste un placeholder
-    console.print(f"[cyan]📝 Command:[/cyan] {prompt}")
+    try:
+        # Import here to avoid circular imports
+        from twogiants.main import TwoGiants
+        
+        # Show what we're processing
+        console.print(f"[cyan]💬 You:[/cyan] {prompt}")
+        console.print()
+        
+        if dry_run:
+            console.print("[yellow]🔍 DRY RUN MODE - No execution[/yellow]")
+            return
+        
+        # Create TwoGiants instance
+        cli = TwoGiants(safe_mode=safe_mode, debug=debug)
+        
+        # Execute
+        console.print("[dim]🤖 2Giants is thinking...[/dim]")
+        response = cli.execute(prompt, session=session)
+        
+        # Display response
+        console.print(f"[green]🤖 2Giants:[/green] {response}")
     
-    if dry_run:
-        console.print("[yellow]🔍 DRY RUN MODE - No execution[/yellow]")
-    
-    console.print(f"[dim]Safe mode: {safe_mode}[/dim]")
-    console.print(f"[dim]Session: {session or 'default'}[/dim]")
-    
-    # TODO: Appeler le vrai système ici
-    console.print("[green]✓ Command received! (Implementation coming soon...)[/green]")
-
+    except Exception as e:
+        console.print(f"[red]❌ Error:[/red] {e}")
+        if debug:
+            import traceback
+            console.print(traceback.format_exc())
 
 def show_help():
     """Show help message in interactive mode."""
